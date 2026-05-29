@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <title>Bienes Raíces | Selección Múltiple y Reservas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.2.1/build/css/intlTelInput.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #020617;
+        --accent: #38bdf8;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --card: #0f172a;
+        --card-2: #111827;
+        --glow: 0 0 20px rgba(56, 189, 248, 0.6);
+      }
+
+      body {
+        font-family: "Space Grotesk", sans-serif;
+        background: radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.15), transparent 35%),
+                    radial-gradient(circle at 90% 20%, rgba(14, 165, 233, 0.15), transparent 40%),
+                    var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding-bottom: 100px;
+      }
+
+      .hero { padding: 50px 0 30px; text-align: center; }
+      .hero h1 { font-size: clamp(2.2rem, 3vw, 3.2rem); font-weight: 700; margin-bottom: 12px; }
+      .hero p { color: var(--muted); max-width: 720px; margin: 0 auto; }
+      .section-title { font-weight: 700; margin-bottom: 24px; }
+
+      .nav-tabs { border-bottom: 2px solid rgba(148, 163, 184, 0.2); justify-content: center; margin-bottom: 40px; }
+      .nav-link { color: var(--muted); font-weight: 600; border: none !important; padding: 12px 24px; }
+      .nav-link.active { color: var(--accent) !important; background-color: transparent !important; border-bottom: 3px solid var(--accent) !important; }
+
+      .property-card {
+        background: var(--card);
+        border-radius: 18px;
+        border: 2px solid rgba(148, 163, 184, 0.2);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        cursor: pointer;
+        position: relative;
+      }
+      .property-card img { width: 100%; height: 200px; object-fit: cover; transition: transform 0.4s ease; }
+      
+      .property-card.selected {
+        border-color: var(--accent);
+        box-shadow: var(--glow);
+        transform: translateY(-4px);
+      }
+      
+      .select-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #fff;
+        transition: all 0.2s ease;
+      }
+      .property-card.selected .select-badge {
+        background: var(--accent);
+        color: #0b1120;
+        border-color: var(--accent);
+      }
+
+      .badge-price {
+        background: rgba(56, 189, 248, 0.18);
+        color: var(--accent);
+        border: 1px solid rgba(56, 189, 248, 0.4);
+      }
+
+      .btn-accent {
+        background: linear-gradient(120deg, var(--accent), #0ea5e9);
+        color: #0b1120;
+        border: none;
+        font-weight: 600;
+      }
+      .btn-accent:hover { color: #fff; opacity: 0.9; }
+      .btn-accent:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      .floating-checkout-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(56, 189, 248, 0.3);
+        padding: 16px 0;
+        z-index: 1040;
+        box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+        transition: transform 0.4s ease;
+        transform: translateY(100%);
+      }
+      .floating-checkout-bar.active { transform: translateY(0); }
+
+      .modal-content, .complaint-box {
+        background: var(--card-2);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        color: var(--text);
+        border-radius: 18px;
+      }
+
+      .form-label { color: var(--muted); }
+      .form-control, .form-select {
+        background: #0b1220;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        color: var(--text);
+      }
+      .form-control:focus, .form-select:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+      }
+
+      .iti { width: 100%; }
+      .iti__country-list { background-color: #0f172a; border-color: rgba(148, 163, 184, 0.4); }
+      .iti__country { color: var(--text); }
+
+      .success-card {
+        border-radius: 20px;
+        padding: 32px;
+        text-align: center;
+        background: linear-gradient(145deg, rgba(56, 189, 248, 0.2), rgba(15, 23, 42, 0.9));
+        border: 1px solid rgba(56, 189, 248, 0.35);
+      }
+      .success-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(56, 189, 248, 0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin-bottom: 16px;
+        color: var(--accent);
+      }
+      
+      .alert-danger-custom {
+        background: rgba(220, 38, 38, 0.2);
+        border: 1px solid rgba(220, 38, 38, 0.5);
+        color: #f87171;
+        border-radius: 12px;
+        white-space: pre-wrap;
+      }
+
+      .qr-container {
+        background: #ffffff;
+        padding: 12px;
+        border-radius: 12px;
+        display: inline-block;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        margin: 16px 0;
+      }
+      .qr-container img { width: 200px; height: 200px; display: block; }
+      .price-highlight { color: #34d399; font-size: 1.6rem; font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <header class="hero" data-aos="fade-down">
+      <div class="container">
+        <h1>BIENES RAÍCES INMUEBLES EL ALTO</h1>
+        <p>Selecciona uno o varios departamentos/terrenos y agenda tu visita de manera automatizada.</p>
+      </div>
+    </header>
+
+    <div class="container">
+      <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="catalog-tab" data-bs-toggle="tab" data-bs-target="#catalogPanel" type="button" role="tab">Catálogo de Bienes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="complaints-tab" data-bs-toggle="tab" data-bs-target="#complaintsPanel" type="button" role="tab">Libro de Reclamos</button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="mainTabsContent">
+        
+        <div class="tab-pane fade show active" id="catalogPanel" role="tabpanel">
+          <main class="pb-5">
+            <section class="mb-5">
+              <h4 class="text-muted mb-4 text-center">💡 Haz clic sobre las tarjetas para seleccionarlas</h4>
+              <h2 class="section-title" data-aos="fade-up">Terrenos Disponibles</h2>
+              <div class="row g-4">
+                <div class="col-md-6 col-lg-3" data-aos="zoom-in">
+                  <div class="property-card" data-property="Terreno Vista Lago">
+                    <div class="select-badge">+</div>
+                    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80" alt="Terreno Vista Lago"/>
+                    <div class="p-3">
+                      <h5>Terreno Vista Lago</h5>
+                      <p class="text-muted small">Zona norte, 450 m2, acceso privado.</p>
+                      <span class="badge badge-price">Bs 180.000</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="50">
+                  <div class="property-card" data-property="Terreno Bosque">
+                    <div class="select-badge">+</div>
+                    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80" alt="Terreno Bosque"/>
+                    <div class="p-3">
+                      <h5>Terreno Bosque</h5>
+                      <p class="text-muted small">Área verde, 520 m2, vista natural.</p>
+                      <span class="badge badge-price">Bs 210.000</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="100">
+                  <div class="property-card" data-property="Terreno Urbano">
+                    <div class="select-badge">+</div>
+                    <img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80" alt="Terreno Urbano"/>
+                    <div class="p-3">
+                      <h5>Terreno Urbano</h5>
+                      <p class="text-muted small">Centro, 300 m2, servicios incluidos.</p>
+                      <span class="badge badge-price">Bs 250.000</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="150">
+                  <div class="property-card" data-property="Terreno Panorama">
+                    <div class="select-badge">+</div>
+                    <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80" alt="Terreno Panorama"/>
+                    <div class="p-3">
+                      <h5>Terreno Panorama</h5>
+                      <p class="text-muted small">Altura, 600 m2, vista 360.</p>
+                      <span class="badge badge-price">Bs 320.000</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="mb-5">
+              <h2 class="section-title" data-aos="fade-up">Alquiler / Departamentos</h2>
+              <div class="row g-4">
+                <div class="col-md-6" data-aos="fade-right">
+                  <div class="property-card" data-property="Departamento Sky">
+                    <div class="select-badge">+</div>
+                    <img src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80" alt="Departamento Sky"/>
+                    <div class="p-3">
+                      <h5>Departamento Sky</h5>
+                      <p class="text-muted small">2 dormitorios, terraza, vista skyline.</p>
+                      <span class="badge badge-price">Bs 520.000</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6" data-aos="fade-left">
+                  <div class="property-card" data-property="Departamento Loft">
+                    <div class="select-badge">+</div>
+                    <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=80" alt="Departamento Loft"/>
+                    <div class="p-3">
+                      <h5>Departamento Loft</h5>
+                      <p class="text-muted small">1 dormitorio, estilo moderno, amoblado.</p>
+                      <span class="badge badge-price">Bs 460.000</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </main>
+        </div>
+
+        <div class="tab-pane fade" id="complaintsPanel" role="tabpanel">
+          <div class="row justify-content-center pb-5">
+            <div class="col-lg-7" data-aos="fade-up">
+              <div class="complaint-box p-4 shadow">
+                <h3 class="text-center mb-3 text-warning">Libro de Reclamos Digital</h3>
+                <p class="text-muted text-center small mb-4">Tu opinión nos ayuda a mejorar de forma inmediata.</p>
+                
+                <div id="complaintError" class="alert alert-danger-custom d-none mb-3"></div>
+                <div id="complaintSuccess" class="alert alert-success d-none mb-3 text-center bg-success text-white border-0">¡Reclamo enviado correctamente a la base de datos!</div>
+
+                <form id="complaintForm" novalidate>
+                  <div class="mb-3">
+                    <label class="form-label">ID Reclamo</label>
+                    <input type="text" class="form-control" id="compIdManual" required placeholder="Ej: REC-102" />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Sugerencia / Detalle del Reclamo</label>
+                    <textarea class="form-control" id="compMensaje" rows="5" required placeholder="Escriba detalladamente su sugerencia o reclamo..."></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-accent w-100 py-2 mt-2" id="btnComplaints">Enviar Reclamo Obligatorio</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="floating-checkout-bar" id="checkoutBar">
+      <div class="container d-flex justify-content-between align-items-center">
+        <div>
+          <span class="fw-bold d-block text-info" id="txtSeleccionados">Propiedades seleccionadas: 0</span>
+          <span class="text-muted small">Total Cita: <strong class="text-success" id="txtTotalPagar">0 Bs.</strong></span>
+        </div>
+        <button class="btn btn-accent py-2 px-4" id="btnProcederReserva">Proceder a la Reserva</button>
+      </div>
+    </div>
+
+    <div class="modal fade" id="reservaModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header border-0">
+            <h5 class="modal-title">Formulario de Reserva Digital</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="errorMessage" class="alert alert-danger-custom d-none mb-3"><span id="errorText"></span></div>
+            
+            <form id="reservaForm" novalidate>
+              <div class="mb-3 bg-dark p-3 rounded border border-secondary">
+                <span class="text-muted small d-block">Propiedades a Reservar:</span>
+                <div class="fw-bold text-info" id="listaPropiedadesModal">Ninguna</div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre Completo</label>
+                  <input type="text" class="form-control" id="nombreCompleto" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Correo Electrónico</label>
+                  <input type="email" class="form-control" id="emailCliente" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Número Celular</label>
+                  <input type="tel" class="form-control" id="telefono" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Fecha de cita</label>
+                  <input type="date" class="form-control" id="fechaCita" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Hora de cita</label>
+                  <input type="time" class="form-control" id="horaCita" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Subir Comprobante de Pago / CI</label>
+                  <input type="file" class="form-control" id="ciFile" accept=".pdf,.jpg,.jpeg,.png" required />
+                  <div class="form-text text-muted small">Formato PDF o Imagen (Máx 5MB)</div>
+                </div>
+              </div>
+              <div class="mt-4 d-grid">
+                <button type="submit" class="btn btn-accent py-2" id="btnEnviar">Confirmar Registro y Ver QR</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+          <div class="modal-body">
+            <div class="success-card">
+              <div class="success-icon">✓</div>
+              <h4 class="mb-2">¡Datos Enviados con Éxito!</h4>
+              <p class="text-light small">Escanea el QR oficial para liquidar el costo total de tus citas programadas:</p>
+              
+              <div class="qr-container">
+                <img id="modalQrImg" src="https://placehold.co/200x200/ffffff/000000/png?text=QR+PAGO+PROPIEDADES" alt="Código QR Institucional" />
+              </div>
+
+              <div class="mb-3">
+                <span class="text-muted d-block small">Monto Regulado a Depositar:</span>
+                <span class="price-highlight" id="montoFinalQR">0.00 Bs</span>
+              </div>
+              
+              <p style="font-size: 11px;" class="text-muted">Al presionar el botón inferior, serás redirigido automáticamente a WhatsApp para el contacto directo con soporte.</p>
+              <button type="button" class="btn btn-accent w-100 mt-2" id="btnFinalizarTodo">Entendido, ir a WhatsApp</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.2.1/build/js/intlTelInput.min.js"></script>
+    <script>
+      const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBTt6XQ5hTKujk2W9UFLvpOj3K3sMlDzjRKDNiCA_8XaS_t1wUDTwHm6P06uhDvSJueQ/exec";
+      const COSTO_POR_PROPIEDAD = 5;
+
+      AOS.init({ duration: 900, once: true });
+
+      const reservaModal = new bootstrap.Modal(document.getElementById("reservaModal"));
+      const successModal = new bootstrap.Modal(document.getElementById("successModal"));
+      
+      const checkoutBar = document.getElementById("checkoutBar");
+      const txtSeleccionados = document.getElementById("txtSeleccionados");
+      const txtTotalPagar = document.getElementById("txtTotalPagar");
+      
+      let propiedadesSeleccionadas = [];
+      let whatsappGlobalUrl = ""; 
+
+      document.querySelectorAll(".property-card").forEach(card => {
+        card.addEventListener("click", () => {
+          const propertyName = card.getAttribute("data-property");
+          
+          if (card.classList.contains("selected")) {
+            card.classList.remove("selected");
+            card.querySelector(".select-badge").textContent = "+";
+            propiedadesSeleccionadas = propiedadesSeleccionadas.filter(p => p !== propertyName);
+          } else {
+            card.classList.add("selected");
+            card.querySelector(".select-badge").textContent = "✓";
+            propiedadesSeleccionadas.push(propertyName);
+          }
+          
+          actualizarBarraFlotante();
+        });
+      });
+
+      function actualizarBarraFlotante() {
+        const totalItems = propiedadesSeleccionadas.length;
+        if (totalItems > 0) {
+          txtSeleccionados.textContent = `Propiedades seleccionadas: ${totalItems}`;
+          txtTotalPagar.textContent = `${totalItems * COSTO_POR_PROPIEDAD} Bs.`;
+          checkoutBar.classList.add("active");
+        } else {
+          checkoutBar.classList.remove("active");
+        }
+      }
+
+      document.getElementById("btnProcederReserva").addEventListener("click", () => {
+        document.getElementById("listaPropiedadesModal").textContent = propiedadesSeleccionadas.join(", ");
+        document.getElementById("reservaForm").reset();
+        document.getElementById("errorMessage").classList.add("d-none");
+        if (itiReserva) itiReserva.setNumber("");
+        reservaModal.show();
+      });
+
+      const telefonoInput = document.getElementById("telefono");
+      let itiReserva;
+
+      if(telefonoInput) {
+        itiReserva = window.intlTelInput(telefonoInput, { initialCountry: "bo", separateDialCode: true, utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@25.2.1/build/js/utils.js" });
+      }
+
+      const fileToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+      });
+
+      document.getElementById("reservaForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const errDiv = document.getElementById("errorMessage");
+        const txtSpan = document.getElementById("errorText");
+        errDiv.classList.add("d-none");
+
+        const nombreVal = document.getElementById("nombreCompleto").value.trim();
+        const emailVal = document.getElementById("emailCliente").value.trim();
+        const fechaVal = document.getElementById("fechaCita").value;
+        const horaVal = document.getElementById("horaCita").value;
+        const file = document.getElementById("ciFile").files[0];
+
+        if (!nombreVal || !emailVal.includes("@") || !fechaVal || !horaVal) {
+          txtSpan.textContent = "❌ Rellene correctamente los campos del formulario.";
+          errDiv.classList.remove("d-none");
+          return;
+        }
+
+        if (!file) {
+          txtSpan.textContent = "❌ Por favor, adjunte su comprobante o CI.";
+          errDiv.classList.remove("d-none");
+          return;
+        }
+
+        const btn = document.getElementById("btnEnviar");
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando a Base de Datos...';
+
+        try {
+          const base64 = await fileToBase64(file);
+          const fullPhone = itiReserva ? itiReserva.getNumber() : telefonoInput.value;
+
+          const payload = {
+            nombre: nombreVal,
+            email: emailVal,
+            telefono: fullPhone,
+            fecha: fechaVal,
+            hora: horaVal,
+            propiedades: propiedadesSeleccionadas, 
+            file: base64,
+            fileMeta: { name: file.name, type: file.type }
+          };
+
+          const response = await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+          const resData = await response.json();
+
+          if (!resData.ok) throw new Error(resData.message);
+
+          whatsappGlobalUrl = resData.whatsappUrl;
+          document.getElementById("montoFinalQR").textContent = `${propiedadesSeleccionadas.length * COSTO_POR_PROPIEDAD}.00 Bs`;
+
+          reservaModal.hide();
+          successModal.show();
+        } catch (err) {
+          txtSpan.textContent = "❌ Error en envío: " + err.message;
+          errDiv.classList.remove("d-none");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Confirmar Registro y Ver QR";
+        }
+      });
+
+      document.getElementById("btnFinalizarTodo").addEventListener("click", () => {
+        successModal.hide();
+        document.querySelectorAll(".property-card.selected").forEach(card => {
+          card.classList.remove("selected");
+          card.querySelector(".select-badge").textContent = "+";
+        });
+        propiedadesSeleccionadas = [];
+        actualizarBarraFlotante();
+
+        if(whatsappGlobalUrl) {
+          window.open(whatsappGlobalUrl, "_blank");
+        }
+      });
+
+      // 📌 LÓGICA DE ENVÍO DEL NUEVO FORMULARIO REDUCIDO DE RECLAMOS
+      document.getElementById("complaintForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errC = document.getElementById("complaintError");
+        const succC = document.getElementById("complaintSuccess");
+        errC.classList.add("d-none");
+        succC.classList.add("d-none");
+
+        const manualId = document.getElementById("compIdManual").value.trim();
+        const msg = document.getElementById("compMensaje").value.trim();
+
+        if(!manualId || !msg) {
+          errC.textContent = "❌ Rellene todos los campos obligatorios del reclamo.";
+          errC.classList.remove("d-none");
+          return;
+        }
+
+        const btnC = document.getElementById("btnComplaints");
+        btnC.disabled = true;
+        btnC.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando...';
+
+        try {
+          const payload = {
+            tipoAccion: "reclamo",
+            idManual: manualId,
+            mensaje: msg
+          };
+
+          const response = await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+          const resData = await response.json();
+
+          if(!resData.ok) throw new Error(resData.message);
+
+          succC.classList.remove("d-none");
+          document.getElementById("complaintForm").reset();
+          
+          if(resData.whatsappUrl) {
+            setTimeout(() => { window.open(resData.whatsappUrl, "_blank"); }, 1500);
+          }
+        } catch(err) {
+          errC.textContent = "❌ Error: " + err.message;
+          errC.classList.remove("d-none");
+        } finally {
+          btnC.disabled = false;
+          btnC.textContent = "Enviar Reclamo Obligatorio";
+        }
+      });
+    </script>
+  </body>
+</html>
